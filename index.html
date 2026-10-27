@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USDAO Secrétariat Pro - Système Global de Gestion Académique</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            orange: '#f97316',
+                            orangeHover: '#ea580c',
+                            orangeLight: '#ffedd5',
+                            slateDark: '#0f172a',
+                            slateCard: '#1e293b',
+                            slateBorder: '#cbd5e1'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .drag-active { border-color: #f97316 !important; background-color: #fff7ed !important; }
+    </style>
+</head>
+<body class="h-full font-sans text-slate-800 bg-slate-100 flex flex-col antialiased">
+
+    <!-- TOP HEADER -->
+    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Branding -->
+                <div class="flex items-center space-x-3">
+                    <div class="bg-gradient-to-tr from-orange-600 to-orange-400 p-2.5 rounded-xl text-white shadow-lg shadow-orange-500/20">
+                        <i class="fa-solid fa-graduation-cap text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-extrabold text-lg tracking-tight text-white" id="header-sigle">USDAO</span>
+                            <span class="text-orange-500 font-bold text-lg">Secrétariat Pro</span>
+                            <span class="bg-orange-500/20 text-orange-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-orange-500/30">v6.0 Enterprise</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 hidden sm:block font-medium tracking-wide" id="header-fullname">UNIVERSITÉ SAINT DOMINIQUE D'AFRIQUE DE L'OUEST</p>
+                    </div>
+                </div>
+
+                <!-- Global Quick Search -->
+                <div class="flex-1 max-w-md mx-6 hidden md:block">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                        </span>
+                        <input type="text" id="globalSearchInput" onkeyup="handleGlobalSearch()" placeholder="Rechercher un document, étudiant, dossier archivé..." 
+                            class="w-full pl-9 pr-4 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all">
+                    </div>
+                </div>
+
+                <!-- Academic Year Badge & Profile -->
+                <div class="flex items-center space-x-3">
+                    <div class="hidden lg:flex flex-col text-right">
+                        <span class="text-[10px] text-slate-400 font-semibold uppercase">Année Académique</span>
+                        <span class="text-xs font-bold text-orange-400" id="header-academic-year">2026 - 2027</span>
+                    </div>
+
+                    <button onclick="toggleAiDrawer()" class="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-2 shadow-sm transition-all">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span class="hidden sm:inline">Copilot IA</span>
+                    </button>
+
+                    <div class="h-6 w-px bg-slate-700"></div>
+
+                    <div class="flex items-center space-x-2.5">
+                        <div class="text-right hidden sm:block">
+                            <div class="text-xs font-bold text-slate-200" id="header-user-name">Mme S. Koné</div>
+                            <div class="text-[10px] text-orange-400 font-medium" id="header-user-role">Secrétaire Générale</div>
+                        </div>
+                        <div class="h-9 w-9 rounded-xl bg-orange-500 border-2 border-orange-400 flex items-center justify-center text-white font-bold text-xs shadow-md" id="header-avatar">
+                            SK
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAVIGATION BAR -->
+    <nav class="bg-white border-b border-slate-200 shadow-sm z-20 sticky top-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-2 sm:space-x-6 overflow-x-auto">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn py-3 px-3 inline-flex items-center space-x-2 border-b-2 border-orange-500 text-orange-600 font-semibold text-xs transition-all">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Tableau de Bord</span>
+                </button>
+
+                <button onclick="switchTab('ged')" id="nav-ged" class="nav-btn py-3 px-3 inline-flex items-center space-x-2 border-b-2 border-transparent text-slate-600 hover:text-orange-600 font-semibold text-xs transition-all">
+                    <i class="fa-solid fa-folder-tree"></i>
+                    <span>Gestion Documentaire (GED)</span>
+                    <span class="bg-orange-100 text-orange-700 text-[10px] px-1.5 py-0.2 rounded-full font-bold" id="badge-doc-count">0</span>
+                </button>
+
+                <button onclick="switchTab('upload')" id="nav-upload" class="nav-btn py-3 px-3 inline-flex items-center space-x-2 border-b-2 border-transparent text-slate-600 hover:text-orange-600 font-semibold text-xs transition-all">
+                    <i class="fa-solid fa-cloud-arrow-up text-orange-500"></i>
+                    <span>Téléversement & Transferts</span>
+                </button>
+
+                <button onclick="switchTab('archive')" id="nav-archive" class="nav-btn py-3 px-3 inline-flex items-center space-x-2 border-b-2 border-transparent text-slate-600 hover:text-orange-600 font-semibold text-xs transition-all">
+                    <i class="fa-solid fa-vault"></i>
+                    <span>Dossiers & Conservations</span>
+                    <span class="bg-slate-100 text-slate-700 text-[10px] px-1.5 py-0.2 rounded-full font-bold" id="badge-archive-count">0</span>
+                </button>
+
+                <button onclick="switchTab('crm')" id="nav-crm" class="nav-btn py-3 px-3 inline-flex items-center space-x-2 border-b-2 border-transparent text-slate-600 hover:text-orange-600 font-semibold text-xs transition-all">
+                    <i class="fa-solid fa-users-gear"></i>
+                    <span>Contacts & Requêtes</span>
+                </button>
+
+                <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn py-3 px-3 inline-flex items-center space-x-2 border-b-2 border-transparent text-slate-600 hover:text-orange-600 font-semibold text-xs transition-all">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Configuration Plateforme</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- MAIN BODY -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 relative">
+
+        <!-- ================= TAB 1: DASHBOARD ================= -->
+        <section id="tab-dashboard" class="tab-content space-y-6">
+            <!-- Header Welcome Card -->
+            <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-md relative overflow-hidden border border-slate-800">
+                <div class="absolute -right-10 -bottom-10 opacity-10 text-orange-500 text-9xl pointer-events-none">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <span class="bg-orange-500/20 text-orange-400 text-xs font-semibold px-2.5 py-1 rounded-lg border border-orange-500/30">Portail Officiel du Secrétariat</span>
+                        <h1 class="text-2xl font-black text-white mt-2" id="dash-univ-title">UNIVERSITÉ SAINT DOMINIQUE D'AFRIQUE DE L'OUEST</h1>
+                        <p class="text-xs text-slate-300 mt-1" id="dash-univ-motto">Devise : Vérité, Excellence, Service</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="openNewDocModal()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center space-x-2 shadow-lg shadow-orange-500/20 transition-all">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Nouveau Document</span>
+                        </button>
+                        <button onclick="switchTab('upload')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center space-x-2">
+                            <i class="fa-solid fa-upload text-orange-500"></i>
+                            <span>Importer Fichier</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-orange-300 transition-all">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Documents en GED</span>
+                        <div class="p-2.5 bg-orange-50 text-orange-600 rounded-xl">
+                            <i class="fa-solid fa-file-contract text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-baseline justify-between">
+                        <span class="text-2xl font-black text-slate-900" id="dash-kpi-docs">0</span>
+                        <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> Actifs</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-2">Classés par départements</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-orange-300 transition-all">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Dossiers de Conservation</span>
+                        <div class="p-2.5 bg-slate-100 text-slate-800 rounded-xl">
+                            <i class="fa-solid fa-vault text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-baseline justify-between">
+                        <span class="text-2xl font-black text-slate-900" id="dash-kpi-archives">0</span>
+                        <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">Scellés</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-2">Dossiers archivés</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-orange-300 transition-all">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">En Attente de Signature</span>
+                        <div class="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+                            <i class="fa-solid fa-pen-nib text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-baseline justify-between">
+                        <span class="text-2xl font-black text-slate-900" id="dash-kpi-pending">0</span>
+                        <span class="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Parapheur</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-2">À valider par le secrétariat</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-orange-300 transition-all">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Contacts / Requêtes</span>
+                        <div class="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
+                            <i class="fa-solid fa-users text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-baseline justify-between">
+                        <span class="text-2xl font-black text-slate-900" id="dash-kpi-contacts">0</span>
+                        <span class="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full" id="dash-kpi-tickets-count">0 Requêtes</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-2">Étudiants et enseignants</p>
+                </div>
+            </div>
+
+            <!-- Chart & Quick Feed -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-base font-bold text-slate-900">Activité Mensuelle de Traitement Documentaire</h2>
+                        <span class="text-xs text-slate-400">Flux d'archivage & numérisation</span>
+                    </div>
+                    <div class="h-64">
+                        <canvas id="dashboardChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Activity list -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900 mb-3">Flux Récent du Secrétariat</h2>
+                        <div class="space-y-3" id="dash-recent-feed">
+                            <!-- Dynamic items -->
+                        </div>
+                    </div>
+                    <button onclick="switchTab('ged')" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all">
+                        Consulter la GED complète
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 2: GED & DOCUMENT MANAGEMENT ================= -->
+        <section id="tab-ged" class="tab-content hidden space-y-6">
+            <!-- GED Top Controls Bar -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
+                    <!-- Category Filter -->
+                    <select id="ged-category-filter" onchange="filterGedDocs()" class="bg-slate-50 border border-slate-300 text-xs font-semibold rounded-xl px-3 py-2 focus:ring-2 focus:ring-orange-500">
+                        <option value="all">Toutes les catégories</option>
+                        <option value="Procès-Verbaux">Procès-Verbaux (PV)</option>
+                        <option value="Dossiers Inscription">Dossiers d'Inscription</option>
+                        <option value="Conventions">Conventions de Stage</option>
+                        <option value="Actes Administratifs">Actes Administratifs</option>
+                        <option value="Fichier Importé">Fichiers Importés PC</option>
+                    </select>
+
+                    <!-- Status Filter -->
+                    <select id="ged-status-filter" onchange="filterGedDocs()" class="bg-slate-50 border border-slate-300 text-xs font-semibold rounded-xl px-3 py-2 focus:ring-2 focus:ring-orange-500">
+                        <option value="all">Tous les statuts</option>
+                        <option value="En attente">En attente de signature</option>
+                        <option value="Validé">Validés / Signés</option>
+                        <option value="Archivé">Archivés</option>
+                    </select>
+
+                    <!-- Text Search -->
+                    <input type="text" id="ged-search-input" onkeyup="filterGedDocs()" placeholder="Filtrer par titre, émetteur..." 
+                        class="bg-slate-50 border border-slate-300 text-xs rounded-xl px-3 py-2 focus:ring-2 focus:ring-orange-500 flex-1">
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <button onclick="openNewDocModal()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 shadow-sm transition-all shrink-0">
+                        <i class="fa-solid fa-file-circle-plus"></i>
+                        <span>Nouveau Document GED</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Documents Table -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600">
+                        <thead class="bg-slate-900 text-slate-200 font-bold uppercase text-[10px] tracking-wider border-b border-slate-800">
+                            <tr>
+                                <th class="py-3.5 px-4">Document / Titre</th>
+                                <th class="py-3.5 px-4">Catégorie</th>
+                                <th class="py-3.5 px-4">Émetteur / UFR</th>
+                                <th class="py-3.5 px-4">Date</th>
+                                <th class="py-3.5 px-4">Statut Workflow</th>
+                                <th class="py-3.5 px-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200" id="ged-table-body">
+                            <!-- Dynamic rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: TÉLÉVERSEMENT & TRANSFERTS DES FICHIERS ================= -->
+        <section id="tab-upload" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Importer des Fichiers depuis votre Ordinateur</h2>
+                    <p class="text-xs text-slate-500">Sélectionnez ou glissez vos documents (PDF, DOCX, PNG, etc.) pour les intégrer instantanément à la GED USDAO.</p>
+                </div>
+
+                <!-- Dropzone Area -->
+                <div id="dropzone-area" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleFileDrop(event)"
+                    class="border-2 border-dashed border-slate-300 hover:border-orange-500 rounded-2xl p-8 text-center bg-slate-50 transition-all cursor-pointer flex flex-col items-center justify-center space-y-3">
+                    <div class="w-14 h-14 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-slate-800">Glissez-déposez vos fichiers ici</p>
+                        <p class="text-xs text-slate-400 mt-0.5">ou cliquez pour parcourir les dossiers de votre ordinateur</p>
+                    </div>
+                    <input type="file" id="file-input-element" onchange="handleFileSelect(event)" multiple class="hidden">
+                    <button type="button" onclick="document.getElementById('file-input-element').click()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all">
+                        Parcourir Fichiers Local
+                    </button>
+                </div>
+
+                <!-- Uploaded Files Preview List -->
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Fichiers Importés & Prêts au Transfert</h3>
+                    <div id="uploaded-files-list" class="space-y-2">
+                        <!-- Dynamic Upload Items -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 4: DOSSIERS & CONSERVATIONS ================= -->
+        <section id="tab-archive" class="tab-content hidden space-y-6">
+            <!-- Archive Banner -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center space-x-4">
+                    <div class="p-3 bg-slate-900 text-orange-500 rounded-2xl text-2xl border border-slate-800">
+                        <i class="fa-solid fa-vault"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900">Dossiers Académiques & Conservation Pérenne</h2>
+                        <p class="text-xs text-slate-500">Organisation logique par répertoires et coffre-fort numérique à valeur probante pour l'USDAO.</p>
+                    </div>
+                </div>
+
+                <button onclick="openNewArchiveModal()" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2 shadow-sm transition-all border border-slate-800">
+                    <i class="fa-solid fa-folder-plus text-orange-500"></i>
+                    <span>Créer un Nouveau Dossier</span>
+                </button>
+            </div>
+
+            <!-- Folders Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="archive-folders-grid">
+                <!-- Dynamic Archive Folder Cards -->
+            </div>
+        </section>
+
+        <!-- ================= TAB 5: CONTACTS & REQUÊTES (CRM) ================= -->
+        <section id="tab-crm" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Directory Column -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <h3 class="font-bold text-slate-900 text-sm flex items-center space-x-2">
+                            <i class="fa-solid fa-address-book text-orange-500"></i>
+                            <span>Annuaire Étudiants & Personnel</span>
+                        </h3>
+                        <button onclick="openNewContactModal()" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all">
+                            <i class="fa-solid fa-user-plus mr-1"></i> Ajouter
+                        </button>
+                    </div>
+
+                    <div class="space-y-3 max-h-[500px] overflow-y-auto pr-1" id="crm-contacts-list">
+                        <!-- Dynamic Contact Cards -->
+                    </div>
+                </div>
+
+                <!-- Academic Tickets Column -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <h3 class="font-bold text-slate-900 text-sm flex items-center space-x-2">
+                            <i class="fa-solid fa-ticket text-orange-500"></i>
+                            <span>Requêtes Administratives</span>
+                        </h3>
+                        <button onclick="openNewTicketModal()" class="bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all">
+                            <i class="fa-solid fa-plus mr-1"></i> Nouvelle Requête
+                        </button>
+                    </div>
+
+                    <div class="space-y-3 max-h-[500px] overflow-y-auto pr-1" id="crm-tickets-list">
+                        <!-- Dynamic Ticket Cards -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 6: SETTINGS / CONFIGURATION ================= -->
+        <section id="tab-settings" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-4xl mx-auto space-y-6">
+                <div class="border-b border-slate-200 pb-4 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Paramètres de l'Établissement & Secrétariat</h2>
+                        <p class="text-xs text-slate-500">Modifiez les informations officielles pour personnaliser dynamiquement toute la plateforme.</p>
+                    </div>
+                    <button onclick="resetPlatformSettings()" class="text-xs font-bold text-rose-600 hover:underline">
+                        Réinitialiser
+                    </button>
+                </div>
+
+                <form onsubmit="savePlatformSettings(event)" class="space-y-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nom Officiel de l'Université</label>
+                            <input type="text" id="set-univ-fullname" required class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Sigle Officiel</label>
+                            <input type="text" id="set-univ-sigle" required class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Devise Institutionnelle</label>
+                            <input type="text" id="set-univ-motto" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Année Académique Active</label>
+                            <input type="text" id="set-academic-year" required class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nom du Recteur / Président</label>
+                            <input type="text" id="set-rector-name" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nom du Secrétaire Général</label>
+                            <input type="text" id="set-user-name" required class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Adresse E-mail Secrétariat</label>
+                            <input type="email" id="set-univ-email" required class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Téléphone Secrétariat</label>
+                            <input type="text" id="set-univ-phone" required class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end pt-4 border-t border-slate-100">
+                        <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-md transition-all flex items-center space-x-2">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span>Enregistrer & Sauvegarder</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ================= MODALS & DRAWERS ================= -->
+
+    <!-- MODAL 1: ADD / EDIT GED DOCUMENT -->
+    <div id="modal-doc" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-6 space-y-4 border border-slate-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-900 text-base" id="modal-doc-title-text">Nouveau Document GED</h3>
+                <button onclick="closeModal('modal-doc')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <form onsubmit="saveDocumentForm(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="doc-id-input">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Titre du Document</label>
+                    <input type="text" id="doc-title-input" required placeholder="Ex: PV_Jury_Master2_Droit_2026.pdf" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Catégorie Académique</label>
+                        <select id="doc-category-input" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                            <option value="Procès-Verbaux">Procès-Verbaux (PV)</option>
+                            <option value="Dossiers Inscription">Dossiers d'Inscription</option>
+                            <option value="Conventions">Conventions de Stage</option>
+                            <option value="Actes Administratifs">Actes Administratifs</option>
+                            <option value="Fichier Importé">Fichier Importé PC</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Émetteur / Faculté</label>
+                        <input type="text" id="doc-faculty-input" required placeholder="Ex: Faculté de Droit" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Statut Workflow</label>
+                        <select id="doc-status-input" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                            <option value="En attente">En attente de signature</option>
+                            <option value="Validé">Validé / Signé</option>
+                            <option value="Archivé">Archivé</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Classement dans Dossier</label>
+                        <select id="doc-folder-input" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                            <option value="">Aucun (Racine GED)</option>
+                            <!-- Dynamic Folders populated by JS -->
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Mots-clés / Tags OCR</label>
+                    <input type="text" id="doc-tags-input" placeholder="Ex: Examen, Jury, 2026" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Contenu / Texte du Document</label>
+                    <textarea id="doc-content-input" rows="4" required placeholder="Saisir ou coller le texte du document..." class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500"></textarea>
+                </div>
+                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('modal-doc')" class="px-4 py-2 font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Annuler</button>
+                    <button type="submit" class="px-5 py-2 font-bold bg-orange-500 hover:bg-orange-600 text-white rounded-xl shadow-md">Enregistrer le Document</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: VIEW / PREVIEW & DOWNLOAD DOCUMENT -->
+    <div id="modal-view-doc" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 space-y-4 border border-slate-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="font-bold text-slate-900 text-base" id="view-doc-title">Titre du document</h3>
+                    <p class="text-xs text-slate-400" id="view-doc-meta">Métadonnées</p>
+                </div>
+                <button onclick="closeModal('modal-view-doc')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <!-- Virtual Sheet Preview -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 min-h-[220px] text-xs font-serif leading-relaxed text-slate-800 space-y-3 relative">
+                <div class="text-center border-b border-slate-300 pb-3 font-sans">
+                    <p class="font-extrabold uppercase tracking-wider text-slate-900" id="view-sheet-univ">UNIVERSITÉ SAINT DOMINIQUE D'AFRIQUE DE L'OUEST</p>
+                    <p class="text-[10px] text-orange-600 font-bold">Secrétariat Général • Direction des Affaires Académiques</p>
+                </div>
+                <p id="view-doc-content" class="whitespace-pre-line text-slate-700 font-sans"></p>
+                <div class="pt-4 flex justify-between items-end font-sans">
+                    <div class="text-[10px] text-slate-400">
+                        Tags: <span id="view-doc-tags" class="font-semibold text-slate-600">--</span>
+                    </div>
+                    <div id="view-doc-sig-badge" class="border border-orange-300 bg-orange-50 text-orange-700 px-3 py-1 rounded-lg text-[10px] font-bold italic hidden">
+                        <i class="fa-solid fa-certificate text-orange-500 mr-1"></i> Signé électroniquement
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-2 border-t border-slate-100" id="view-doc-actions">
+                <!-- Dynamic actions -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: NEW ARCHIVE FOLDER -->
+    <div id="modal-archive" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-slate-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-900 text-base">Créer un Dossier de Conservation</h3>
+                <button onclick="closeModal('modal-archive')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form onsubmit="saveArchiveForm(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nom du Dossier</label>
+                    <input type="text" id="arch-title-input" required placeholder="Ex: Dossiers Inscription Master 2026" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Catégorie de Conservation</label>
+                    <select id="arch-type-input" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                        <option value="Dossiers Étudiants">Dossiers Étudiants</option>
+                        <option value="PV de Jury & Délibérations">PV de Jury & Délibérations</option>
+                        <option value="Conventions & Partenariats">Conventions & Partenariats</option>
+                        <option value="Actes & Courriers Administratifs">Actes & Courriers Administratifs</option>
+                        <option value="Archives de Recherche">Archives de Recherche</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Niveau de Confidentialité</label>
+                    <select id="arch-conf-input" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                        <option value="Restreint">Restreint (Secrétariat & Direction)</option>
+                        <option value="Hautement Confidentiel">Hautement Confidentiel (Recteur uniquement)</option>
+                        <option value="Public Académique">Public Académique</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('modal-archive')" class="px-4 py-2 font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Annuler</button>
+                    <button type="submit" class="px-5 py-2 font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-md">Créer le Dossier</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4: NEW / EDIT CONTACT -->
+    <div id="modal-contact" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-slate-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-900 text-base" id="modal-contact-title">Ajouter un Contact</h3>
+                <button onclick="closeModal('modal-contact')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form onsubmit="saveContactForm(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="contact-id-input">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nom complet</label>
+                    <input type="text" id="contact-name-input" required placeholder="Ex: Dr. Sawadogo Marc" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Rôle / Statut</label>
+                        <select id="contact-role-input" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                            <option value="Étudiant">Étudiant</option>
+                            <option value="Enseignant-Chercheur">Enseignant-Chercheur</option>
+                            <option value="Doyen de Faculté">Doyen de Faculté</option>
+                            <option value="Agent Administratif">Agent Administratif</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Faculté / UFR</label>
+                        <input type="text" id="contact-faculty-input" required placeholder="Ex: Droit" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">E-mail</label>
+                    <input type="email" id="contact-email-input" required placeholder="m.sawadogo@usdao.edu" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Téléphone</label>
+                    <input type="text" id="contact-phone-input" required placeholder="+226 70 00 00 00" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('modal-contact')" class="px-4 py-2 font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Annuler</button>
+                    <button type="submit" class="px-5 py-2 font-bold bg-orange-500 hover:bg-orange-600 text-white rounded-xl shadow-md">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 5: NEW TICKET -->
+    <div id="modal-ticket" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-slate-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-900 text-base">Nouvelle Requête Académique</h3>
+                <button onclick="closeModal('modal-ticket')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form onsubmit="saveTicketForm(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Demandeur / Étudiant</label>
+                    <input type="text" id="ticket-student-input" required placeholder="Ex: Ouedraogo Fatou" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Type de Demande</label>
+                    <select id="ticket-type-input" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                        <option value="Attestation de Réussite">Attestation de Réussite / Diplôme</option>
+                        <option value="Réclamation de Note">Réclamation de Note / Copie</option>
+                        <option value="Transfert de Faculté">Transfert de Faculté / Exeat</option>
+                        <option value="Demande d'Équivalence">Demande d'Équivalence</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Description du besoin</label>
+                    <textarea id="ticket-desc-input" rows="3" required placeholder="Saisir les précisions..." class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500"></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('modal-ticket')" class="px-4 py-2 font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Annuler</button>
+                    <button type="submit" class="px-5 py-2 font-bold bg-orange-500 hover:bg-orange-600 text-white rounded-xl shadow-md">Créer la Requête</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 6: SHARE / TRANSFER FILE -->
+    <div id="modal-share-file" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-slate-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-900 text-base">Transférer le Document</h3>
+                <button onclick="closeModal('modal-share-file')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form onsubmit="handleFileTransferSubmit(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="share-file-id">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Document à Envoyer</label>
+                    <input type="text" id="share-file-name" readonly class="w-full p-2.5 bg-slate-100 border border-slate-200 rounded-xl font-semibold text-slate-700">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Sélectionner le Destinataire (Annuaire)</label>
+                    <select id="share-recipient-select" required class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Message d'accompagnement</label>
+                    <textarea id="share-message-text" rows="3" placeholder="Ex: Veuillez trouver ci-joint votre document officiel..." class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500"></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('modal-share-file')" class="px-4 py-2 font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Annuler</button>
+                    <button type="submit" class="px-5 py-2 font-bold bg-orange-500 hover:bg-orange-600 text-white rounded-xl shadow-md flex items-center space-x-1">
+                        <i class="fa-solid fa-paper-plane mr-1"></i> Envoyer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- COPILOT IA DRAWER -->
+    <aside id="ai-drawer" class="fixed inset-y-0 right-0 w-full sm:w-96 bg-slate-900 text-slate-100 shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out z-50 flex flex-col border-l border-slate-800">
+        <div class="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-orange-500 rounded-xl text-white">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm text-white">USDAO Copilot IA</h3>
+                    <p class="text-[10px] text-orange-400">Assistant Secrétariat & Rédaction</p>
+                </div>
+            </div>
+            <button onclick="toggleAiDrawer()" class="text-slate-400 hover:text-white p-1">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <div id="ai-messages" class="flex-1 p-4 overflow-y-auto space-y-4 text-xs">
+            <div class="flex items-start space-x-2">
+                <div class="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-[10px] shrink-0">IA</div>
+                <div class="bg-slate-800 p-3 rounded-2xl rounded-tl-none border border-slate-700 text-slate-200">
+                    Bonjour. Je suis l'assistant IA de l'USDAO. Je peux rédiger des actes, résumer vos PV de jury ou préparer des lettres administratives.
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 bg-slate-950 border-t border-slate-800">
+            <form onsubmit="handleAiQuery(event)" class="flex items-center space-x-2">
+                <input type="text" id="ai-input" placeholder="Demandez une rédaction, une synthèse..." 
+                    class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                <button type="submit" class="p-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-all">
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+
+    <!-- ================= JAVASCRIPT STATE & APPLICATION ENGINE ================= -->
+    <script>
+        // --- DEFAULT DATA SEEDS ---
+        const DEFAULT_SETTINGS = {
+            univFullName: "UNIVERSITÉ SAINT DOMINIQUE D'AFRIQUE DE L'OUEST",
+            univSigle: "USDAO",
+            univMotto: "Vérité, Excellence, Service",
+            academicYear: "2026-2027",
+            rectorName: "Prof. Augustin KABORE",
+            userName: "Mme S. Koné",
+            userRole: "Secrétaire Générale",
+            univEmail: "secretariat@usdao.edu",
+            univPhone: "+226 25 30 00 00"
+        };
+
+        const DEFAULT_DOCS = [
+            { id: 1, title: "PV_Jury_Master2_Droit_2026.pdf", category: "Procès-Verbaux", faculty: "Faculté de Droit", date: "26/10/2026", status: "En attente", tags: "Jury, Master, Examen", content: "Procès-verbal de délibération de la 2ème session du Master 2 Droit Privé. Sur 42 candidats présentés, 38 sont déclarés admis définitivement avec félicitations du jury.", folderId: 102 },
+            { id: 2, title: "Convention_Stage_Bamba_M.pdf", category: "Conventions", faculty: "Faculté Info", date: "25/10/2026", status: "Validé", tags: "Stage, Entreprise", content: "Convention de stage de fin d'études au bénéfice de M. Bamba Moussa auprès de la structure partenaire Société Générale pour une durée de 6 mois.", folderId: 103 },
+            { id: 3, title: "Relevé_Notes_Kaboré_Jean.pdf", category: "Dossiers Inscription", faculty: "Faculté Info", date: "24/10/2026", status: "Validé", tags: "Bac, Inscription", content: "Dossier d'inscription validé et complet. Diplôme de Baccalauréat certifié conforme par le secrétariat central.", folderId: 101 },
+            { id: 4, title: "PV_Conseil_UFR_Gestion.pdf", category: "Procès-Verbaux", faculty: "Faculté Gestion", date: "22/10/2026", status: "En attente", tags: "Conseil, Maquette", content: "Ordre du jour : Validation des maquettes pédagogiques de la Licence 3 Comptabilité et contrôle de gestion pour l'année universitaire.", folderId: 102 }
+        ];
+
+        const DEFAULT_ARCHIVES = [
+            { id: 101, title: "Dossiers d'Inscription L1 & L2", type: "Dossiers Étudiants", confidential: "Restreint", date: "15/10/2026" },
+            { id: 102, title: "PV de Délibérations Générales", type: "PV de Jury & Délibérations", confidential: "Hautement Confidentiel", date: "02/09/2026" },
+            { id: 103, title: "Conventions & Partenariats Entreprises", type: "Conventions & Partenariats", confidential: "Restreint", date: "20/08/2026" }
+        ];
+
+        const DEFAULT_CONTACTS = [
+            { id: 1, name: "Dr. Konaté Lassina", role: "Enseignant-Chercheur", faculty: "Droit", email: "l.konate@usdao.edu", phone: "+226 70 00 11 22", avatar: "LK" },
+            { id: 2, name: "Bamba Moussa", role: "Étudiant", faculty: "Informatique", email: "m.bamba@etud.usdao.edu", phone: "+226 76 55 44 33", avatar: "BM" },
+            { id: 3, name: "Prof. Traoré Kadidia", role: "Doyen de Faculté", faculty: "Gestion", email: "k.traore@usdao.edu", phone: "+226 78 99 88 77", avatar: "TK" }
+        ];
+
+        const DEFAULT_TICKETS = [
+            { id: 201, student: "Ouedraogo Fatou", type: "Attestation de Réussite", desc: "Besoin urgent pour dossier de bourse.", status: "En cours", date: "Aujourd'hui" },
+            { id: 202, student: "Bamba Moussa", type: "Réclamation de Note", desc: "Erreur de saisie en Module Algorithmique.", status: "Nouveau", date: "Hier" }
+        ];
+
+        // --- LOCALSTORAGE LOAD / SAVE ENGINE ---
+        let platformSettings = JSON.parse(localStorage.getItem('USDAO_SETTINGS')) || DEFAULT_SETTINGS;
+        let documentsData = JSON.parse(localStorage.getItem('USDAO_DOCS')) || DEFAULT_DOCS;
+        let archiveFoldersData = JSON.parse(localStorage.getItem('USDAO_ARCHIVES')) || DEFAULT_ARCHIVES;
+        let crmContactsData = JSON.parse(localStorage.getItem('USDAO_CONTACTS')) || DEFAULT_CONTACTS;
+        let crmTicketsData = JSON.parse(localStorage.getItem('USDAO_TICKETS')) || DEFAULT_TICKETS;
+
+        function saveToLocalStorage() {
+            localStorage.setItem('USDAO_SETTINGS', JSON.stringify(platformSettings));
+            localStorage.setItem('USDAO_DOCS', JSON.stringify(documentsData));
+            localStorage.setItem('USDAO_ARCHIVES', JSON.stringify(archiveFoldersData));
+            localStorage.setItem('USDAO_CONTACTS', JSON.stringify(crmContactsData));
+            localStorage.setItem('USDAO_TICKETS', JSON.stringify(crmTicketsData));
+        }
+
+        // --- APP INITIALIZATION ---
+        window.onload = function() {
+            renderPlatformInfo();
+            renderGedTable();
+            renderArchiveFolders();
+            renderContactsAndTickets();
+            renderFolderSelectOptions();
+            updateDashboardKPIs();
+            initChart();
+        };
+
+        // --- RENDER PLATFORM CONFIGURATION ---
+        function renderPlatformInfo() {
+            document.getElementById('header-sigle').innerText = platformSettings.univSigle;
+            document.getElementById('header-fullname').innerText = platformSettings.univFullName;
+            document.getElementById('header-academic-year').innerText = platformSettings.academicYear;
+            document.getElementById('header-user-name').innerText = platformSettings.userName;
+            document.getElementById('header-user-role').innerText = platformSettings.userRole;
+
+            const initials = platformSettings.userName ? platformSettings.userName.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : 'SK';
+            document.getElementById('header-avatar').innerText = initials;
+
+            document.getElementById('dash-univ-title').innerText = platformSettings.univFullName;
+            document.getElementById('dash-univ-motto').innerText = `Devise : ${platformSettings.univMotto}`;
+            document.getElementById('view-sheet-univ').innerText = platformSettings.univFullName;
+
+            // Fill Settings inputs
+            document.getElementById('set-univ-fullname').value = platformSettings.univFullName;
+            document.getElementById('set-univ-sigle').value = platformSettings.univSigle;
+            document.getElementById('set-univ-motto').value = platformSettings.univMotto;
+            document.getElementById('set-academic-year').value = platformSettings.academicYear;
+            document.getElementById('set-rector-name').value = platformSettings.rectorName;
+            document.getElementById('set-user-name').value = platformSettings.userName;
+            document.getElementById('set-univ-email').value = platformSettings.univEmail;
+            document.getElementById('set-univ-phone').value = platformSettings.univPhone;
+        }
+
+        function savePlatformSettings(e) {
+            e.preventDefault();
+            platformSettings.univFullName = document.getElementById('set-univ-fullname').value;
+            platformSettings.univSigle = document.getElementById('set-univ-sigle').value;
+            platformSettings.univMotto = document.getElementById('set-univ-motto').value;
+            platformSettings.academicYear = document.getElementById('set-academic-year').value;
+            platformSettings.rectorName = document.getElementById('set-rector-name').value;
+            platformSettings.userName = document.getElementById('set-user-name').value;
+            platformSettings.univEmail = document.getElementById('set-univ-email').value;
+            platformSettings.univPhone = document.getElementById('set-univ-phone').value;
+
+            saveToLocalStorage();
+            renderPlatformInfo();
+            showToast("Configuration mise à jour et enregistrée !", "success");
+        }
+
+        function resetPlatformSettings() {
+            if(confirm("Réinitialiser tous les paramètres aux valeurs par défaut ?")) {
+                platformSettings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+                saveToLocalStorage();
+                renderPlatformInfo();
+                showToast("Paramètres réinitialisés.", "info");
+            }
+        }
+
+        // --- NAVIGATION BETWEEN TABS ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                el.classList.remove('border-orange-500', 'text-orange-600');
+                el.classList.add('border-transparent', 'text-slate-600');
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const navBtn = document.getElementById(`nav-${tabId}`);
+            if(navBtn) {
+                navBtn.classList.remove('border-transparent', 'text-slate-600');
+                navBtn.classList.add('border-orange-500', 'text-orange-600');
+            }
+        }
+
+        // --- GED MANIPULATION LOGIC ---
+        function renderGedTable(docs = documentsData) {
+            const tbody = document.getElementById('ged-table-body');
+            tbody.innerHTML = '';
+
+            if(docs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400 italic">Aucun document trouvé.</td></tr>`;
+                return;
+            }
+
+            docs.forEach(doc => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-all border-b border-slate-100";
+
+                let statusBadge = `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full"><i class="fa-solid fa-clock mr-1"></i>En attente</span>`;
+                if(doc.status === 'Validé') statusBadge = `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full"><i class="fa-solid fa-check mr-1"></i>Validé</span>`;
+                if(doc.status === 'Archivé') statusBadge = `<span class="bg-slate-200 text-slate-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full"><i class="fa-solid fa-box-archive mr-1"></i>Archivé</span>`;
+
+                const folderObj = archiveFoldersData.find(f => f.id == doc.folderId);
+                const folderName = folderObj ? folderObj.title : 'Racine GED';
+
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4 font-bold text-slate-900 flex items-center space-x-3">
+                        <div class="p-2 bg-slate-100 text-orange-600 rounded-xl shrink-0">
+                            <i class="fa-solid ${doc.category === 'Fichier Importé' ? 'fa-file-arrow-up' : 'fa-file-pdf'} text-base"></i>
+                        </div>
+                        <div>
+                            <div>${doc.title}</div>
+                            <div class="text-[10px] text-slate-400 font-normal">Dossier: <span class="font-semibold text-slate-600">${folderName}</span></div>
+                        </div>
+                    </td>
+                    <td class="py-3.5 px-4 text-xs font-semibold text-slate-700">${doc.category}</td>
+                    <td class="py-3.5 px-4 text-xs text-slate-600">${doc.faculty}</td>
+                    <td class="py-3.5 px-4 text-xs text-slate-500">${doc.date}</td>
+                    <td class="py-3.5 px-4">${statusBadge}</td>
+                    <td class="py-3.5 px-4 text-right space-x-1 whitespace-nowrap">
+                        <button onclick="viewDocument(${doc.id})" class="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-all" title="Aperçu"><i class="fa-solid fa-eye"></i></button>
+                        <button onclick="downloadDocument(${doc.id})" class="p-1.5 bg-orange-50 hover:bg-orange-100 text-orange-600 rounded-lg transition-all" title="Télécharger"><i class="fa-solid fa-download"></i></button>
+                        <button onclick="openShareModal(${doc.id})" class="p-1.5 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-lg transition-all" title="Transférer"><i class="fa-solid fa-share-nodes"></i></button>
+                        <button onclick="editDocument(${doc.id})" class="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all" title="Modifier"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteDocument(${doc.id})" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-all" title="Supprimer"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('badge-doc-count').innerText = documentsData.length;
+        }
+
+        function filterGedDocs() {
+            const cat = document.getElementById('ged-category-filter').value;
+            const stat = document.getElementById('ged-status-filter').value;
+            const search = document.getElementById('ged-search-input').value.toLowerCase();
+
+            let filtered = documentsData.filter(d => {
+                const matchCat = (cat === 'all' || d.category === cat);
+                const matchStat = (stat === 'all' || d.status === stat);
+                const matchSearch = d.title.toLowerCase().includes(search) || d.faculty.toLowerCase().includes(search);
+                return matchCat && matchStat && matchSearch;
+            });
+
+            renderGedTable(filtered);
+        }
+
+        function renderFolderSelectOptions() {
+            const select = document.getElementById('doc-folder-input');
+            select.innerHTML = '<option value="">Aucun (Racine GED)</option>';
+            archiveFoldersData.forEach(f => {
+                select.innerHTML += `<option value="${f.id}">${f.title}</option>`;
+            });
+        }
+
+        function openNewDocModal() {
+            renderFolderSelectOptions();
+            document.getElementById('doc-id-input').value = '';
+            document.getElementById('modal-doc-title-text').innerText = "Nouveau Document GED";
+            document.getElementById('doc-title-input').value = '';
+            document.getElementById('doc-faculty-input').value = '';
+            document.getElementById('doc-tags-input').value = '';
+            document.getElementById('doc-content-input').value = '';
+            document.getElementById('modal-doc').classList.remove('hidden');
+        }
+
+        function editDocument(docId) {
+            renderFolderSelectOptions();
+            const doc = documentsData.find(d => d.id === docId);
+            if(!doc) return;
+
+            document.getElementById('doc-id-input').value = doc.id;
+            document.getElementById('modal-doc-title-text').innerText = "Modifier le Document";
+            document.getElementById('doc-title-input').value = doc.title;
+            document.getElementById('doc-category-input').value = doc.category;
+            document.getElementById('doc-faculty-input').value = doc.faculty;
+            document.getElementById('doc-status-input').value = doc.status;
+            document.getElementById('doc-folder-input').value = doc.folderId || '';
+            document.getElementById('doc-tags-input').value = doc.tags || '';
+            document.getElementById('doc-content-input').value = doc.content || '';
+
+            document.getElementById('modal-doc').classList.remove('hidden');
+        }
+
+        function saveDocumentForm(e) {
+            e.preventDefault();
+            const id = document.getElementById('doc-id-input').value;
+            const title = document.getElementById('doc-title-input').value;
+            const category = document.getElementById('doc-category-input').value;
+            const faculty = document.getElementById('doc-faculty-input').value;
+            const status = document.getElementById('doc-status-input').value;
+            const folderId = document.getElementById('doc-folder-input').value;
+            const tags = document.getElementById('doc-tags-input').value;
+            const content = document.getElementById('doc-content-input').value;
+
+            if(id) {
+                const doc = documentsData.find(d => d.id == id);
+                if(doc) {
+                    doc.title = title;
+                    doc.category = category;
+                    doc.faculty = faculty;
+                    doc.status = status;
+                    doc.folderId = folderId ? parseInt(folderId) : null;
+                    doc.tags = tags;
+                    doc.content = content;
+                    showToast("Document mis à jour avec succès !", "success");
+                }
+            } else {
+                const newDoc = {
+                    id: Date.now(),
+                    title, category, faculty, status, tags, content,
+                    folderId: folderId ? parseInt(folderId) : null,
+                    date: "Aujourd'hui"
+                };
+                documentsData.unshift(newDoc);
+                showToast("Nouveau document créé et classé dans la GED !", "success");
+            }
+
+            saveToLocalStorage();
+            renderGedTable();
+            renderArchiveFolders();
+            updateDashboardKPIs();
+            closeModal('modal-doc');
+        }
+
+        function deleteDocument(docId) {
+            if(confirm("Voulez-vous vraiment supprimer ce document ?")) {
+                documentsData = documentsData.filter(d => d.id !== docId);
+                saveToLocalStorage();
+                renderGedTable();
+                renderArchiveFolders();
+                updateDashboardKPIs();
+                showToast("Document supprimé.", "info");
+            }
+        }
+
+        function viewDocument(docId) {
+            const doc = documentsData.find(d => d.id === docId);
+            if(!doc) return;
+
+            document.getElementById('view-doc-title').innerText = doc.title;
+            document.getElementById('view-doc-meta').innerText = `Catégorie: ${doc.category} | Faculté: ${doc.faculty} | Date: ${doc.date}`;
+            document.getElementById('view-doc-content').innerText = doc.content || "Aucun contenu textuel.";
+            document.getElementById('view-doc-tags').innerText = doc.tags || "Aucun";
+
+            const sigBadge = document.getElementById('view-doc-sig-badge');
+            if(doc.status === 'Validé') sigBadge.classList.remove('hidden');
+            else sigBadge.classList.add('hidden');
+
+            const actionsDiv = document.getElementById('view-doc-actions');
+            actionsDiv.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <button onclick="downloadDocument(${doc.id})" class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1">
+                        <i class="fa-solid fa-download mr-1"></i> Télécharger
+                    </button>
+                    <button onclick="openShareModal(${doc.id}); closeModal('modal-view-doc');" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1">
+                        <i class="fa-solid fa-share-nodes mr-1"></i> Transférer
+                    </button>
+                </div>
+                <div class="flex items-center space-x-2">
+                    ${doc.status !== 'Validé' ? `
+                        <button onclick="toggleDocSignature(${doc.id})" class="px-3 py-1.5 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-md">
+                            <i class="fa-solid fa-pen-nib mr-1"></i> Signer
+                        </button>
+                    ` : ''}
+                    <button onclick="closeModal('modal-view-doc')" class="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Fermer</button>
+                </div>
+            `;
+
+            document.getElementById('modal-view-doc').classList.remove('hidden');
+        }
+
+        function downloadDocument(docId) {
+            const doc = documentsData.find(d => d.id === docId);
+            if(!doc) return;
+
+            const textContent = `${platformSettings.univFullName}\nSecrétariat Général • USDAO\n----------------------------------------\nTitre: ${doc.title}\nCatégorie: ${doc.category}\nFaculté: ${doc.faculty}\nDate: ${doc.date}\nStatut: ${doc.status}\n----------------------------------------\n\n${doc.content || ''}`;
+            
+            const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = doc.title.replace(/\.[^/.]+$/, "") + "_USDAO.txt";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast(`Téléchargement de "${doc.title}" démarré.`, "success");
+        }
+
+        function toggleDocSignature(docId) {
+            const doc = documentsData.find(d => d.id === docId);
+            if(doc) {
+                doc.status = "Validé";
+                saveToLocalStorage();
+                renderGedTable();
+                updateDashboardKPIs();
+                closeModal('modal-view-doc');
+                showToast(`Le document "${doc.title}" a été signé avec succès !`, "success");
+            }
+        }
+
+        // --- DRAG & DROP & UPLOAD LOGIC ---
+        function handleDragOver(e) {
+            e.preventDefault();
+            document.getElementById('dropzone-area').classList.add('drag-active');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            document.getElementById('dropzone-area').classList.remove('drag-active');
+        }
+
+        function handleFileDrop(e) {
+            e.preventDefault();
+            document.getElementById('dropzone-area').classList.remove('drag-active');
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                processUploadedFiles(e.dataTransfer.files);
+            }
+        }
+
+        function handleFileSelect(e) {
+            if (e.target.files && e.target.files.length > 0) {
+                processUploadedFiles(e.target.files);
+            }
+        }
+
+        function processUploadedFiles(files) {
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const fileText = evt.target.result;
+                    const newDoc = {
+                        id: Date.now() + Math.floor(Math.random() * 1000),
+                        title: file.name,
+                        category: "Fichier Importé",
+                        faculty: "Secrétariat Central",
+                        date: "Aujourd'hui",
+                        status: "En attente",
+                        tags: `Upload, PC, ${(file.size / 1024).toFixed(1)} KB`,
+                        content: typeof fileText === 'string' ? fileText.substring(0, 1000) : `[Fichier binaire : ${file.name}]`,
+                        folderId: null
+                    };
+
+                    documentsData.unshift(newDoc);
+                    saveToLocalStorage();
+                    renderGedTable();
+                    renderUploadedFilesList();
+                    updateDashboardKPIs();
+                    showToast(`Fichier "${file.name}" téléversé dans la GED !`, "success");
+                };
+                
+                if(file.type.includes('text') || file.name.endsWith('.txt') || file.name.endsWith('.csv')) {
+                    reader.readAsText(file);
+                } else {
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function renderUploadedFilesList() {
+            const container = document.getElementById('uploaded-files-list');
+            container.innerHTML = '';
+
+            const importedDocs = documentsData.filter(d => d.category === "Fichier Importé");
+            if(importedDocs.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 italic">Aucun fichier externe importé pour le moment.</p>`;
+                return;
+            }
+
+            importedDocs.forEach(doc => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-3 bg-white rounded-xl border border-slate-200 text-xs hover:border-orange-300 transition-all";
+                div.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-orange-100 text-orange-600 rounded-lg">
+                            <i class="fa-solid fa-file-arrow-up"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-900">${doc.title}</p>
+                            <p class="text-[10px] text-slate-400">${doc.tags} • ${doc.date}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="downloadDocument(${doc.id})" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg transition-all" title="Télécharger">
+                            <i class="fa-solid fa-download mr-1"></i> Télécharger
+                        </button>
+                        <button onclick="openShareModal(${doc.id})" class="px-2.5 py-1 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg transition-all">
+                            <i class="fa-solid fa-paper-plane mr-1"></i> Transférer
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // --- FILE TRANSFER / SHARE MODAL LOGIC ---
+        function openShareModal(docId) {
+            const doc = documentsData.find(d => d.id === docId);
+            if(!doc) return;
+
+            document.getElementById('share-file-id').value = doc.id;
+            document.getElementById('share-file-name').value = doc.title;
+
+            const select = document.getElementById('share-recipient-select');
+            select.innerHTML = '';
+            crmContactsData.forEach(c => {
+                select.innerHTML += `<option value="${c.email}">${c.name} (${c.role} - ${c.email})</option>`;
+            });
+
+            document.getElementById('modal-share-file').classList.remove('hidden');
+        }
+
+        function handleFileTransferSubmit(e) {
+            e.preventDefault();
+            const fileName = document.getElementById('share-file-name').value;
+            const recipient = document.getElementById('share-recipient-select').value;
+
+            closeModal('modal-share-file');
+            showToast(`Document "${fileName}" transmis par mail sécurisé à ${recipient} !`, "success");
+        }
+
+        // --- ARCHIVE & COFFRE-FORT LOGIC ---
+        function renderArchiveFolders() {
+            const grid = document.getElementById('archive-folders-grid');
+            grid.innerHTML = '';
+
+            archiveFoldersData.forEach(folder => {
+                const folderDocs = documentsData.filter(d => d.folderId === folder.id);
+                const count = folderDocs.length;
+
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-slate-800 transition-all space-y-4 relative overflow-hidden";
+                
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <span class="text-[10px] font-mono font-bold bg-slate-900 text-orange-400 px-2 py-0.5 rounded">FOLDER-${folder.id}</span>
+                        <span class="text-[10px] font-bold bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full">${folder.confidential}</span>
+                    </div>
+
+                    <div class="space-y-1">
+                        <h3 class="font-bold text-slate-900 text-sm flex items-center space-x-2">
+                            <i class="fa-solid fa-folder-closed text-orange-500"></i>
+                            <span>${folder.title}</span>
+                        </h3>
+                        <p class="text-xs text-slate-500">Catégorie : ${folder.type}</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-xl text-[11px] text-slate-600">
+                        <div><i class="fa-solid fa-paperclip text-slate-400 mr-1"></i><strong>${count}</strong> pièces classées</div>
+                        <div><i class="fa-solid fa-shield text-slate-400 mr-1"></i>Scellé</div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                        <span class="text-[10px] text-slate-400">Créé le : ${folder.date}</span>
+                        <div class="space-x-1">
+                            <button onclick="filterGedByFolder(${folder.id})" class="text-xs font-bold text-orange-600 hover:underline">Ouvrir GED →</button>
+                            <button onclick="deleteArchiveFolder(${folder.id})" class="text-rose-500 hover:text-rose-700 p-1" title="Supprimer dossier"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            document.getElementById('badge-archive-count').innerText = archiveFoldersData.length;
+        }
+
+        function openNewArchiveModal() {
+            document.getElementById('modal-archive').classList.remove('hidden');
+        }
+
+        function saveArchiveForm(e) {
+            e.preventDefault();
+            const title = document.getElementById('arch-title-input').value;
+            const type = document.getElementById('arch-type-input').value;
+            const confidential = document.getElementById('arch-conf-input').value;
+
+            const newFolder = {
+                id: Date.now(),
+                title, type, confidential,
+                date: "Aujourd'hui"
+            };
+
+            archiveFoldersData.unshift(newFolder);
+            saveToLocalStorage();
+            renderArchiveFolders();
+            renderFolderSelectOptions();
+            updateDashboardKPIs();
+            closeModal('modal-archive');
+            showToast("Nouveau dossier créé avec succès !", "success");
+        }
+
+        function deleteArchiveFolder(folderId) {
+            if(confirm("Supprimer ce dossier ? Les documents classés repasseront à la racine.")) {
+                archiveFoldersData = archiveFoldersData.filter(f => f.id !== folderId);
+                documentsData.forEach(d => { if(d.folderId === folderId) d.folderId = null; });
+                saveToLocalStorage();
+                renderArchiveFolders();
+                renderGedTable();
+                updateDashboardKPIs();
+                showToast("Dossier supprimé.", "info");
+            }
+        }
+
+        function filterGedByFolder(folderId) {
+            switchTab('ged');
+            const docs = documentsData.filter(d => d.folderId === folderId);
+            renderGedTable(docs);
+            showToast(`Filtrage par dossier effectué (${docs.length} documents).`, "info");
+        }
+
+        // --- CONTACTS & TICKETS (CRM) LOGIC ---
+        function renderContactsAndTickets() {
+            // Contacts
+            const cContainer = document.getElementById('crm-contacts-list');
+            cContainer.innerHTML = '';
+            crmContactsData.forEach(c => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200/80 hover:border-orange-300 transition-all";
+                div.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-9 h-9 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                            ${c.avatar}
+                        </div>
+                        <div>
+                            <p class="font-bold text-xs text-slate-900">${c.name}</p>
+                            <p class="text-[10px] text-orange-600 font-semibold">${c.role} • ${c.faculty}</p>
+                            <p class="text-[10px] text-slate-400">${c.email} | ${c.phone}</p>
+                        </div>
+                    </div>
+                    <div class="space-x-1">
+                        <button onclick="editContact(${c.id})" class="p-1.5 text-slate-500 hover:text-orange-600"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteContact(${c.id})" class="p-1.5 text-slate-400 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+                cContainer.appendChild(div);
+            });
+
+            // Tickets
+            const tContainer = document.getElementById('crm-tickets-list');
+            tContainer.innerHTML = '';
+            crmTicketsData.forEach(t => {
+                const div = document.createElement('div');
+                div.className = "p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-2 hover:border-orange-300 transition-all";
+                div.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-xs text-slate-900">#${t.id} • ${t.type}</span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${t.status === 'En cours' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${t.status}</span>
+                    </div>
+                    <p class="text-xs text-slate-700">Demandeur : <strong>${t.student}</strong></p>
+                    <p class="text-[11px] text-slate-500">${t.desc}</p>
+                    <div class="flex justify-between items-center pt-1 border-t border-slate-200/60 text-[10px]">
+                        <span class="text-slate-400">${t.date}</span>
+                        <button onclick="resolveTicket(${t.id})" class="text-orange-600 font-bold hover:underline">Clôturer la demande</button>
+                    </div>
+                `;
+                tContainer.appendChild(div);
+            });
+        }
+
+        function openNewContactModal() {
+            document.getElementById('contact-id-input').value = '';
+            document.getElementById('modal-contact-title').innerText = "Ajouter un Contact";
+            document.getElementById('contact-name-input').value = '';
+            document.getElementById('contact-faculty-input').value = '';
+            document.getElementById('contact-email-input').value = '';
+            document.getElementById('contact-phone-input').value = '';
+            document.getElementById('modal-contact').classList.remove('hidden');
+        }
+
+        function editContact(cId) {
+            const c = crmContactsData.find(item => item.id === cId);
+            if(!c) return;
+
+            document.getElementById('contact-id-input').value = c.id;
+            document.getElementById('modal-contact-title').innerText = "Modifier la Fiche Contact";
+            document.getElementById('contact-name-input').value = c.name;
+            document.getElementById('contact-role-input').value = c.role;
+            document.getElementById('contact-faculty-input').value = c.faculty;
+            document.getElementById('contact-email-input').value = c.email;
+            document.getElementById('contact-phone-input').value = c.phone;
+
+            document.getElementById('modal-contact').classList.remove('hidden');
+        }
+
+        function saveContactForm(e) {
+            e.preventDefault();
+            const id = document.getElementById('contact-id-input').value;
+            const name = document.getElementById('contact-name-input').value;
+            const role = document.getElementById('contact-role-input').value;
+            const faculty = document.getElementById('contact-faculty-input').value;
+            const email = document.getElementById('contact-email-input').value;
+            const phone = document.getElementById('contact-phone-input').value;
+
+            if(id) {
+                const c = crmContactsData.find(item => item.id == id);
+                if(c) {
+                    c.name = name; c.role = role; c.faculty = faculty; c.email = email; c.phone = phone;
+                    showToast("Fiche contact mise à jour.", "success");
+                }
+            } else {
+                const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0,2);
+                crmContactsData.unshift({ id: Date.now(), name, role, faculty, email, phone, avatar: initials });
+                showToast("Contact ajouté à l'annuaire !", "success");
+            }
+
+            saveToLocalStorage();
+            renderContactsAndTickets();
+            updateDashboardKPIs();
+            closeModal('modal-contact');
+        }
+
+        function deleteContact(cId) {
+            if(confirm("Supprimer ce contact de l'annuaire ?")) {
+                crmContactsData = crmContactsData.filter(c => c.id !== cId);
+                saveToLocalStorage();
+                renderContactsAndTickets();
+                updateDashboardKPIs();
+                showToast("Contact supprimé.", "info");
+            }
+        }
+
+        function openNewTicketModal() {
+            document.getElementById('modal-ticket').classList.remove('hidden');
+        }
+
+        function saveTicketForm(e) {
+            e.preventDefault();
+            const student = document.getElementById('ticket-student-input').value;
+            const type = document.getElementById('ticket-type-input').value;
+            const desc = document.getElementById('ticket-desc-input').value;
+
+            crmTicketsData.unshift({
+                id: Math.floor(200 + Math.random() * 800),
+                student, type, desc, status: "Nouveau", date: "Aujourd'hui"
+            });
+
+            saveToLocalStorage();
+            renderContactsAndTickets();
+            updateDashboardKPIs();
+            closeModal('modal-ticket');
+            showToast("Requête académique enregistrée !", "success");
+        }
+
+        function resolveTicket(tId) {
+            crmTicketsData = crmTicketsData.filter(t => t.id !== tId);
+            saveToLocalStorage();
+            renderContactsAndTickets();
+            updateDashboardKPIs();
+            showToast(`Requête #${tId} résolue et fermée.`, "info");
+        }
+
+        // --- DASHBOARD UPDATES & CHART ---
+        function updateDashboardKPIs() {
+            document.getElementById('dash-kpi-docs').innerText = documentsData.length;
+            document.getElementById('dash-kpi-archives').innerText = archiveFoldersData.length;
+            document.getElementById('dash-kpi-pending').innerText = documentsData.filter(d => d.status === 'En attente').length;
+            document.getElementById('dash-kpi-contacts').innerText = crmContactsData.length;
+            document.getElementById('dash-kpi-tickets-count').innerText = `${crmTicketsData.length} Requêtes`;
+
+            // Recent Feed
+            const feedContainer = document.getElementById('dash-recent-feed');
+            feedContainer.innerHTML = '';
+            documentsData.slice(0, 3).forEach(doc => {
+                const item = document.createElement('div');
+                item.className = "flex items-start space-x-3 text-xs";
+                item.innerHTML = `
+                    <div class="w-7 h-7 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center shrink-0 font-bold">
+                        <i class="fa-solid fa-file"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-bold text-slate-800 truncate">${doc.title}</p>
+                        <p class="text-[10px] text-slate-400">${doc.faculty} • ${doc.date}</p>
+                    </div>
+                `;
+                feedContainer.appendChild(item);
+            });
+
+            renderUploadedFilesList();
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('dashboardChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
+                    datasets: [
+                        { label: 'Documents Numérisés', data: [65, 80, 120, 105, 140, 95], backgroundColor: '#f97316', borderRadius: 6 },
+                        { label: 'Dossiers Archivés', data: [20, 35, 40, 50, 60, 45], backgroundColor: '#0f172a', borderRadius: 6 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        // --- UTILS & HELPERS ---
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function showToast(msg, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bg = type === "success" ? "bg-slate-900 border-orange-500 text-white" : "bg-slate-800 border-slate-600 text-white";
+            const icon = type === "success" ? '<i class="fa-solid fa-circle-check text-orange-400"></i>' : '<i class="fa-solid fa-info-circle text-blue-400"></i>';
+
+            toast.className = `pointer-events-auto flex items-center space-x-3 p-3.5 rounded-xl border shadow-2xl text-xs font-semibold transition-all ${bg}`;
+            toast.innerHTML = `${icon} <span>${msg}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => toast.remove(), 3500);
+        }
+
+        function toggleAiDrawer() {
+            document.getElementById('ai-drawer').classList.toggle('translate-x-full');
+        }
+
+        function handleAiQuery(e) {
+            e.preventDefault();
+            const input = document.getElementById('ai-input');
+            if(!input.value.trim()) return;
+
+            const msgContainer = document.getElementById('ai-messages');
+            msgContainer.innerHTML += `
+                <div class="flex items-start space-x-2 justify-end">
+                    <div class="bg-orange-600 text-white p-3 rounded-2xl rounded-tr-none text-xs">
+                        ${input.value}
+                    </div>
+                </div>
+            `;
+            input.value = '';
+
+            setTimeout(() => {
+                msgContainer.innerHTML += `
+                    <div class="flex items-start space-x-2">
+                        <div class="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-[10px] shrink-0">IA</div>
+                        <div class="bg-slate-800 p-3 rounded-2xl rounded-tl-none border border-slate-700 text-slate-200 text-xs">
+                            Instruction enregistrée pour le secrétariat de l'${platformSettings.univSigle}.
+                        </div>
+                    </div>
+                `;
+                msgContainer.scrollTop = msgContainer.scrollHeight;
+            }, 600);
+        }
+
+        function handleGlobalSearch() {
+            const query = document.getElementById('globalSearchInput').value.toLowerCase();
+            if(!query) return;
+
+            document.getElementById('ged-search-input').value = query;
+            switchTab('ged');
+            filterGedDocs();
+        }
+    </script>
+</body>
+</html>
